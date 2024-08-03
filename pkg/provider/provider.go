@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/Triple-Whale/terraform-provider-clickhouse/pkg/common"
@@ -138,6 +139,19 @@ func configure() func(context.Context, *schema.ResourceData) (any, diag.Diagnost
 			Auth: clickhouse.Auth{
 				Username: username,
 				Password: password,
+			},
+			Debug: true,
+			Debugf: func(format string, v ...any) {
+				cleanedFormat := strings.ReplaceAll(format, "\t", "    ")
+				cleanedArgs := make([]interface{}, len(v))
+				for i, arg := range v {
+					if str, ok := arg.(string); ok {
+						cleanedArgs[i] = strings.ReplaceAll(str, "\t", "    ")
+					} else {
+						cleanedArgs[i] = arg
+					}
+				}
+				fmt.Printf(cleanedFormat+"\n", cleanedArgs...)
 			},
 			Settings: clickhouse.Settings{
 				"max_execution_time": 300,
