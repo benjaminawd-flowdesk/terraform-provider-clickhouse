@@ -303,6 +303,13 @@ func testAccCheckRoleResourceExists(roleName string, database string, privileges
 
 		dbRole, err := c.GetRole(context.Background(), roleName)
 
+		if dbRole != nil {
+			fmt.Printf("DEBUG: Role found: %+v\n", dbRole)
+			fmt.Printf("DEBUG: Privileges: %+v\n", dbRole.Privileges)
+		} else {
+			fmt.Println("DEBUG: Role not found or error occurred.")
+		}
+
 		if err != nil {
 			return fmt.Errorf("get role: %v", err)
 		}
