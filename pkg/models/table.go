@@ -134,6 +134,10 @@ func GetOrderBy(sortingKey string) []string {
 	var orderBy []string
 	sortingKey = strings.TrimSpace(sortingKey)
 
+	if sortingKey == "tuple()" || sortingKey == "" {
+		return orderBy
+	}
+
 	keys := strings.Split(sortingKey, ",")
 
 	for _, key := range keys {
