@@ -75,7 +75,11 @@ func ResourceView() *schema.Resource {
 func resourceViewRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	writer := bufio.NewWriter(os.Stdout)
 
-	writer.Flush()
+	defer func() {
+		if err := writer.Flush(); err != nil {
+			fmt.Printf("Error flushing writer: %v", err)
+		}
+	}()
 
 	var diags diag.Diagnostics
 

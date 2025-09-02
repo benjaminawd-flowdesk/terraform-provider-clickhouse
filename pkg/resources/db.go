@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/FlowdeskMarkets/terraform-provider-clickhouse/pkg/sdk"
 
@@ -21,6 +22,28 @@ func ResourceDb() *schema.Resource {
 		CreateContext: resourceDbCreate,
 		ReadContext:   resourceDbRead,
 		DeleteContext: resourceDbDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				switch len(idParts) {
+				case 2:
+					if err := d.Set("cluster", idParts[0]); err != nil {
+						return nil, err
+					}
+					if err := d.Set("name", idParts[1]); err != nil {
+						return nil, err
+					}
+				case 1:
+					if err := d.Set("name", idParts[0]); err != nil {
+						return nil, err
+					}
+				default:
+					return nil, fmt.Errorf("invalid import ID, expected <database> or <cluster>:<database>")
+				}
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"cluster": {
@@ -136,7 +159,12 @@ func resourceDbRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		})
 	}
 
-	// not set - comment
+	if err := d.Set("comment", comment); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Unable to set comment for db %q", name),
+		})
+	}
 
 	err = d.Set("cluster", cluster)
 	if err != nil {
