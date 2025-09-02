@@ -3,6 +3,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/FlowdeskMarkets/terraform-provider-clickhouse/pkg/common"
 	"github.com/FlowdeskMarkets/terraform-provider-clickhouse/pkg/models"
@@ -19,6 +20,33 @@ func ResourceTable() *schema.Resource {
 		ReadContext:   resourceTableRead,
 		DeleteContext: resourceTableDelete,
 		UpdateContext: resourceTableUpdate,
+		Importer: &schema.ResourceImporter{
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ":")
+				switch len(idParts) {
+				case 3:
+					if err := d.Set("cluster", idParts[0]); err != nil {
+						return nil, err
+					}
+					if err := d.Set("database", idParts[1]); err != nil {
+						return nil, err
+					}
+					if err := d.Set("name", idParts[2]); err != nil {
+						return nil, err
+					}
+				case 2:
+					if err := d.Set("database", idParts[0]); err != nil {
+						return nil, err
+					}
+					if err := d.Set("name", idParts[1]); err != nil {
+						return nil, err
+					}
+				default:
+					return nil, fmt.Errorf("invalid import ID, expected <database>:<table> or <cluster>:<database>:<table>")
+				}
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"database": {
 				Description: "DB Name where the table will bellow",

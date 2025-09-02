@@ -98,8 +98,8 @@ func tableConfigWithName(database string, tableName string) string {
 		comment = "This is just a new table"
 }`
 
-	s = strings.Replace(s, "%_database_%", database, -1)
-	s = strings.Replace(s, "%_tableName_%", tableName, -1)
+	s = strings.ReplaceAll(s, "%_database_%", database)
+	s = strings.ReplaceAll(s, "%_tableName_%", tableName)
 	return s
 }
 

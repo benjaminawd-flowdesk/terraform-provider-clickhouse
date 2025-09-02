@@ -47,6 +47,12 @@ func TestAccResourceDb(t *testing.T) {
 						"clickhouse_db.new_db", "comment", regexp.MustCompile("^"+testResourceDBDatabaseComment2)),
 				),
 			},
+			{
+				ResourceName:            "clickhouse_db.new_db",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"comment"},
+			},
 		},
 	})
 }
